@@ -18,7 +18,7 @@ class TetrisGBAEnvironment(gym.Env):
         self.screen = d3dshot.create(capture_output="pytorch_float_gpu")  # ToDo: Try other devices for the preprocessing
         self.screen.capture(target_fps=60, region=GBA_REGION)
 
-    def reset(self): # Will return state
+    def reset(self):  # ToDo: unpause the game, load F1 save, press enter and pause the game again.
         return torch.zeros((1, 20, 10), dtype=torch.float)
 
     def step(self, action, state):
@@ -26,7 +26,7 @@ class TetrisGBAEnvironment(gym.Env):
         self.perform_action(action)
         # wait a bit
         new_state = self.get_observation()
-        reward = self.get_reward(state, new_state)
+        reward = self.get_reward(state, new_state, action)
         return new_state, reward, done
 
     def get_observation(self):
@@ -35,17 +35,20 @@ class TetrisGBAEnvironment(gym.Env):
         grid = F.avg_pool2d(grid_pixels, (8, 8)) > 0.6  #  Should output a 20x10 grid
         return torch.tensor(grid, dtype=torch.float)
 
-    def get_reward(self, state, new_state):
+    def get_reward(self, state, new_state, action):  # ToDo: Think about a way to counter forever pressing rotate key
         height, new_height = self.compute_height(state), self.compute_height(new_state)
-
-        if new_height < height:
-            return (height - new_height)*torch.tensor(0.2, dtype=torch.float)
-        if new_height > height:
-            return new_height * torch.tensor(-0.05, dtype=torch.float)
+        if action == 4:
+            if new_height < height:
+                return (height - new_height)*torch.tensor(0.2, dtype=torch.float)
+            if new_height > height:
+                return new_height * torch.tensor(-0.05, dtype=torch.float)
+            else:
+                return torch.tensor(0.0, dtype=torch.float)
         else:
-            return torch.tensor(0.0, dtype=torch.float)
+            return torch.tensor(-0.001, dtype=torch.float)
 
-    def compute_height(self, state):
+    @staticmethod
+    def compute_height(state):
         height = state.sum(dim=2)
         height = torch.argmax(torch.tensor(torch.flip(height, dims=[0,1]) == 0.0, dtype=torch.int), dim=1).item() + 1
         return height
