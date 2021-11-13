@@ -1,6 +1,8 @@
 import win32con
 import win32api
 import time
+import random
+import numpy as np
 
 # Credits: https://gist.github.com/chriskiehl/2906125
 VK_CODE = {'backspace':0x08,
@@ -150,7 +152,6 @@ VK_CODE = {'backspace':0x08,
            "'":0xDE,
            '`':0xC0}
 
-
 def press(*args):
     '''
     one press, one release.
@@ -181,3 +182,23 @@ def release(*args):
     '''
     for i in args:
            win32api.keybd_event(VK_CODE[i],0 ,win32con.KEYEVENTF_KEYUP ,0)
+
+
+class ReplayMemory:  # ToDo: implement save functions with pickle library
+    def __init__(self, size):
+        self.memory = np.empty(size)
+        self.curr_size = 0
+        self.idx = 0
+
+    def sample(self, batch_size=128):
+        batch_idx = random.sample(range(self.curr_size), k=batch_size)
+        return self.memory[batch_idx]
+
+    def push(self, state, new_state, action, reward):
+        self.memory[self.idx] = (state, new_state, action, reward)
+        self.idx = (self.idx + 1) % self.size
+        if self.curr_size < len(self.memory):
+            self.curr_size += 1
+
+    def __length__(self):  # Maximum Capacity
+        return len(self.memory)
