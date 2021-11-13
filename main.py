@@ -35,6 +35,6 @@ if __name__ == "__main__":
     #tetris_train()
     env = environment.TetrisGBAEnvironment()
 
-    time.sleep(10)
+    time.sleep(3)
     env.get_observation()
-    
+
