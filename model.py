@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
 class TetrisNetwork(nn.Module):
 
     def __init__(self, input_dim, hidden_size, output_dim):

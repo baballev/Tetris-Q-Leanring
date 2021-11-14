@@ -71,7 +71,4 @@ def load(path):
     with open(path, 'rb') as f:
         return pickle.load(f)
 
-    # ToDo later:
-    # - Save/checkpoint our training progess  =  saving the weights of the network to a file
-    # - Load the weights
     # - Stop function at the end of training

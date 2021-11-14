@@ -2,14 +2,12 @@ import torch
 import environment
 import trainer
 import time
-import random
-import tqdm
 
 MAX_STEPS = 500000
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def tetris_train(episode_nb=5000, min_steps_training=50000, target_update_frequency=30000, batch_size=128, gamma=0.999,
-                 lr=0.0001, eps=0.99, schedule=100000, load=None,
+                 lr=0.0001, eps=0.99, schedule=500000, load=None,
                  memory_capacity=1000000):  # min_steps_training is considered to be smaller than the memory capacity
     env = environment.TetrisGBAEnvironment()
     if load is not None:
@@ -20,7 +18,7 @@ def tetris_train(episode_nb=5000, min_steps_training=50000, target_update_freque
     total_steps = 0
     time.sleep(1)
 
-    for episode in tqdm.tqdm(range(episode_nb)):
+    for episode in range(episode_nb):
         state = env.reset()
 
         for step in range(MAX_STEPS):
@@ -44,4 +42,4 @@ def tetris_train(episode_nb=5000, min_steps_training=50000, target_update_freque
 
 
 if __name__ == "__main__":
-    tetris_train(load="E:/Programmation/Python/tetrist_rl/checkpoints/2021-11-14 15-00-15.199165.pckl")nnnnnnnn
+    tetris_train()

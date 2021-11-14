@@ -58,15 +58,9 @@ class TetrisGBAEnvironment(gym.Env):
         elif -8 < new_blocks - blocks < 0:  # Handling noise and compensate for the reward loss
             return -(new_blocks-blocks)/100 - torch.tensor(0.001, dtype=torch.float)
         else:
-            return torch.tensor(0.0, dtype=torch.float).to(devic)
+            return torch.tensor(0.0, dtype=torch.float).to(device)
 
-    '''
-    @staticmethod
-    def compute_height(state):
-        height = state.sum(dim=2)
-        height = torch.argmax(torch.clone(torch.flip(height, dims=[0,1]) == 0.0).to(torch.int), dim=1).item() + 1
-        return height
-    '''
+
 
     def perform_action(self, action):
         if not self.simulation:
