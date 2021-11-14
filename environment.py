@@ -26,32 +26,34 @@ class TetrisGBAEnvironment(gym.Env):
         self.perform_action(action)
         # wait a bit
         new_state = self.get_observation()
-        reward = self.get_reward(state, new_state, action)
+        print(new_state)
+        reward = self.get_reward(state, new_state)
         return new_state, reward, done
 
     def get_observation(self):
         grid_pixels = self.screen.get_latest_frame().permute(2, 0, 1)
-        grid_pixels = F.threshold(grid_pixels.mean(keepdim=True, dim=0), 0.3, 0.0)
-        grid = F.threshold(F.avg_pool2d(grid_pixels, (8, 8)), 0.6, 0.0)
+        grid_pixels = torch.ceil_(F.threshold(grid_pixels.mean(keepdim=True, dim=0), 0.3, 0.0))
+        grid = torch.ceil_(F.threshold(F.avg_pool2d(grid_pixels, (8, 8)), 0.55, 0.0))
         return grid
 
-    def get_reward(self, state, new_state, action):  # ToDo: Think about a way to counter forever pressing rotate key
-        height, new_height = self.compute_height(state), self.compute_height(new_state)
-        if action == 4:
-            if new_height < height:
-                return (height - new_height)*torch.tensor(0.2, dtype=torch.float).to(device)
-            if new_height > height:
-                return new_height * torch.tensor(-0.05, dtype=torch.float).to(device)
-            else:
-                return torch.tensor(0.0, dtype=torch.float).to(device)
-        else:
-            return torch.tensor(-0.001, dtype=torch.float).to(device)
+    def get_reward(self, state, new_state):
+        blocks, new_blocks = state.sum(), new_state.sum()
+        print(blocks)
+        print(new_blocks)
+        if new_blocks - blocks < -8:
+            return (blocks-new_blocks)/50
+        elif blocks == new_blocks:
+            return torch.tensor(-0.001, dtype=torch.float)
+        elif blocks > new_blocks:
+            return (new_blocks - blocks)/100
 
+    '''
     @staticmethod
     def compute_height(state):
         height = state.sum(dim=2)
         height = torch.argmax(torch.clone(torch.flip(height, dims=[0,1]) == 0.0).to(torch.int), dim=1).item() + 1
         return height
+    '''
 
     def perform_action(self, action):
         if action == 0:  # DO NOTHING

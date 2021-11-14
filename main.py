@@ -22,6 +22,7 @@ def tetris_train(episode_nb=5000, min_steps_training=50000, target_update_freque
         for step in range(MAX_STEPS):
             action = tt.select_action(state)
             new_state, reward, done = env.step(action, state)
+            print(reward)
             tt.memory.push(state, new_state, action, reward)
             if tt.memory.curr_size > min_steps_training:
                 tt.optimize()
@@ -37,6 +38,7 @@ def tetris_train(episode_nb=5000, min_steps_training=50000, target_update_freque
             # ToDo: Load and save weights,  pickle trainer
             # ToDo: Logging
             # ToDo: Regular evaluation
+            # ToDo: tdqm episode number
 
 if __name__ == "__main__":
     tetris_train()
