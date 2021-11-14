@@ -15,6 +15,7 @@ def tetris_train(episode_nb=5000, min_steps_training=50000, target_update_freque
     tt = trainer.TetrisTrainer(batch_size=batch_size, gamma=gamma, lr=lr, epsilon_start=eps, schedule_size=schedule,
                                capacity=memory_capacity)
     total_steps = 0
+    time.sleep(1)
 
     for episode in range(episode_nb):
         state = env.reset()
@@ -39,6 +40,8 @@ def tetris_train(episode_nb=5000, min_steps_training=50000, target_update_freque
             # ToDo: Logging
             # ToDo: Regular evaluation
             # ToDo: tdqm episode number
+        print("END OF THE EPISODE")
+
 
 if __name__ == "__main__":
     tetris_train()

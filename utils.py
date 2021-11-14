@@ -1,9 +1,12 @@
 import win32con
 import win32api
+import win32gui
 import time
 import random
 import numpy as np
 import torch
+import psutil
+import subprocess
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -212,17 +215,60 @@ class ReplayMemory:  # ToDo: implement save functions with pickle library
 
 def relaunch_routine():
     pressAndHold('ctrl')
-    time.sleep(0.3)
+    time.sleep(0.1)
     press('p')
-    time.sleep(0.3)
+    time.sleep(0.1)
     release('ctrl')
-    time.sleep(1)
+    time.sleep(0.1)
     press('F1')
     time.sleep(1)
-    press('enter')
-    time.sleep(2)
+    press('enter', 'enter', 'enter')
+    time.sleep(2.5)
     pressAndHold('ctrl')
-    time.sleep(0.3)
+    time.sleep(0.1)
     press('p')
-    time.sleep(0.3)
+    time.sleep(0.1)
     release('ctrl')
+
+
+def launch_environment_routine():
+    try:
+        for proc in psutil.process_iter():
+            if proc.name() == 'VisualBoyAdvance.exe':
+                proc.kill()
+        process = subprocess.Popen('E:/Programmation/Python/tetrist_rl/emulator/VisualBoyAdvance.exe')
+        p = psutil.Process(process.pid)
+        time.sleep(1)
+        window = win32gui.FindWindow(None, "VisualBoyAdvance")
+        width, height = win32gui.GetWindowRect(window)[2] - win32gui.GetWindowRect(window)[0], \
+                        win32gui.GetWindowRect(window)[3] - win32gui.GetWindowRect(window)[1]
+        win32gui.MoveWindow(window, -7, 0, width, height, False)
+        pressAndHold('ctrl')
+        time.sleep(0.1)
+        press('o')
+        time.sleep(0.1)
+        release('ctrl')
+        time.sleep(0.1)
+        press('t')
+        press('down_arrow')
+        press('enter')
+        time.sleep(0.1)
+        pressAndHold('ctrl')
+        time.sleep(0.1)
+        press('1')
+        press('2')
+        press('3')
+        time.sleep(0.1)
+        release('ctrl')
+        press('F1')
+        time.sleep(1)
+        pressAndHold('ctrl')
+        time.sleep(0.1)
+        press('p')
+        time.sleep(0.1)
+        release('ctrl')
+
+
+    except Exception as e:
+        print(e)
+        p = None
