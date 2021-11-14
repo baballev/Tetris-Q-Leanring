@@ -12,15 +12,17 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class TetrisGBAEnvironment(gym.Env):
-    def __init__(self):
+    def __init__(self, simulation=False):
         super(TetrisGBAEnvironment, self).__init__()
+        self.simulation = simulation
         self.screen = d3dshot.create(capture_output="pytorch_float_gpu")  # ToDo: Try other devices for the preprocessing
         self.screen.capture(target_fps=60, region=GRID_REGION)
-        utils.launch_environment_routine()
+        if not self.simulation:
+            self.process = utils.launch_environment_routine()
 
     def reset(self):  # ToDo: unpause the game, load F1 save, press enter and pause the game again.
         utils.relaunch_routine()
-        return torch.zeros((1, 20, 10), dtype=torch.float).to(device)
+        return self.get_observation()[0]
 
     def step(self, action, state):
         self.perform_action(action)
@@ -33,13 +35,16 @@ class TetrisGBAEnvironment(gym.Env):
         return new_state, reward, done
 
     def get_observation(self):
-        done = False
-        grid_pixels = self.screen.get_latest_frame().permute(2, 0, 1)
-        if grid_pixels[0, 50, -1] < 0.5:
-            done = True
-        grid_pixels = torch.ceil_(F.threshold(grid_pixels[:, :, :-1].mean(keepdim=True, dim=0), 0.3, 0.0))
-        grid = torch.ceil_(F.threshold(F.avg_pool2d(grid_pixels, (8, 8)), 0.6, 0.0))
-        return grid, done
+        if not self.simulation:
+            done = False
+            grid_pixels = self.screen.get_latest_frame().permute(2, 0, 1)
+            if grid_pixels[0, 50, -1] < 0.5:
+                done = True
+            grid_pixels = torch.ceil_(F.threshold(grid_pixels[:, :, :-1].mean(keepdim=True, dim=0), 0.3, 0.0))
+            grid = torch.ceil_(F.threshold(F.avg_pool2d(grid_pixels, (8, 8)), 0.6, 0.0))
+            return grid, done
+        else:
+            pass
 
     @staticmethod
     def get_reward(state, new_state):
@@ -52,6 +57,8 @@ class TetrisGBAEnvironment(gym.Env):
             return -(new_blocks - blocks)/100
         elif -8 < new_blocks - blocks < 0:  # Handling noise and compensate for the reward loss
             return -(new_blocks-blocks)/100 - torch.tensor(0.001, dtype=torch.float)
+        else:
+            return torch.tensor(0.0, dtype=torch.float).to(devic)
 
     '''
     @staticmethod
@@ -62,47 +69,57 @@ class TetrisGBAEnvironment(gym.Env):
     '''
 
     def perform_action(self, action):
-        if action == 0:  # DO NOTHING
-            utils.pressAndHold('ctrl')
-            for _ in range(12):
-                utils.press('n')
-            utils.release('ctrl')
+        if not self.simulation:
+            if action == 0:  # DO NOTHING
+                utils.pressAndHold('ctrl')
+                for _ in range(12):
+                    utils.press('n')
+                    utils.release('ctrl')
 
-        elif action == 1:  # ROTATE BLOCK
-            utils.pressAndHold('x', 'ctrl')
-            for i in range(12):
-                if i == 1:
-                    utils.release('x')
-                utils.press('n')
-            utils.release('ctrl')
+            elif action == 1:  # ROTATE BLOCK
+                utils.pressAndHold('x', 'ctrl')
+                for i in range(12):
+                    if i == 1:
+                        utils.release('x')
+                    utils.press('n')
+                utils.release('ctrl')
 
-        elif action == 2:  # LEFT
-            utils.pressAndHold('h', 'ctrl')
-            for i in range(12):
-                if i == 1:
-                    utils.release('h')
-                utils.press('n')
-            utils.release('ctrl')
+            elif action == 2:  # LEFT
+                utils.pressAndHold('h', 'ctrl')
+                for i in range(12):
+                    if i == 1:
+                        utils.release('h')
+                    utils.press('n')
+                utils.release('ctrl')
 
-        elif action == 3:  # RIGHT
-            utils.pressAndHold('j', 'ctrl')
-            for i in range(12):
-                if i == 1:
-                    utils.release('j')
-                utils.press('n')
-            utils.release('ctrl')
+            elif action == 3:  # RIGHT
+                utils.pressAndHold('j', 'ctrl')
+                for i in range(12):
+                    if i == 1:
+                        utils.release('j')
+                    utils.press('n')
+                utils.release('ctrl')
 
-        else:  # DOWN
-            utils.pressAndHold('g', 'ctrl')
-            for i in range(12):
-                if i == 1:
-                    utils.release('g')
-                utils.press('n')
-            utils.release('ctrl')
+            else:  # DOWN
+                utils.pressAndHold('g', 'ctrl')
+                for i in range(12):
+                    if i == 1:
+                        utils.release('g')
+                    utils.press('n')
+                utils.release('ctrl')
+        else:
+            pass
+
 
     def stop(self):
         utils.release('ctrl')
         self.screen.stop()
+        try:
+            self.process.kill()
+            print('Killed process with pid' + str(self.process.pid))
+        except Exception as e:
+            print(e)
+
         # ToDo: Close the VBA environment + save states
 
 

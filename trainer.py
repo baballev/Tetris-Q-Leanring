@@ -4,6 +4,8 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 import random
+import datetime
+import pickle
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -16,12 +18,15 @@ class TetrisTrainer():
         self.epsilon = epsilon_start
         self.schedule_size = schedule_size
 
-        self.q_network = model.TetrisNetwork(input_dim=200, hidden_size=32, output_dim=5).to(device) # The one we choose the actions from
+        self.q_network = model.TetrisNetwork(input_dim=200, hidden_size=32, output_dim=5).to(device)  # The one we choose the actions from
         self.target_q_network = model.TetrisNetwork(input_dim=200, hidden_size=32, output_dim=5).to(device)  # The one we will be optimizing from (in part)
         self.update_target()
 
         self.memory = utils.ReplayMemory(capacity)
         self.optimizer = optim.Adam(self.q_network.parameters(), lr=self.learning_rate, eps=1e-5)
+
+        self.curr_reward = 0.0
+        self.episode_rewards = []
 
     def optimize(self):
         state, new_state, action, reward = self.memory.sample(batch_size=self.batch_size)
@@ -48,10 +53,25 @@ class TetrisTrainer():
     def update_target(self):
         self.target_q_network.load_state_dict(self.q_network.state_dict())
 
+    def log(self, reward, done, step, episode):
+        self.curr_reward += reward
+
+        if done:
+            self.episode_rewards.append(self.curr_reward)
+            print("End of episode " + str(episode) + " - " + str(step) + " steps - Episode Reward: " + str(self.curr_reward))
+            self.curr_reward = 0.0
+
+    def save(self):
+        with open("E:/Programmation/Python/tetrist_rl/checkpoints/" + str(datetime.datetime.now()).replace(":", "-") + ".pckl", 'wb') as f:
+            pickle.dump(self, f)
+            print("Saved trainer to file successfully.")
+
+
+def load(path):
+    with open(path, 'rb') as f:
+        return pickle.load(f)
 
     # ToDo later:
     # - Save/checkpoint our training progess  =  saving the weights of the network to a file
     # - Load the weights
-    # - Select best action
-    # - Select actions that allow us to explore the state space
     # - Stop function at the end of training
