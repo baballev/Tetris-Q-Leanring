@@ -3,6 +3,9 @@ import win32api
 import time
 import random
 import numpy as np
+import torch
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Credits: https://gist.github.com/chriskiehl/2906125
 VK_CODE = {'backspace':0x08,
@@ -186,19 +189,22 @@ def release(*args):
 
 class ReplayMemory:  # ToDo: implement save functions with pickle library
     def __init__(self, size):
-        self.memory = np.empty(size)
+        self.state_memory = np.empty((size, 2, 20, 10))
+        self.action_reward_memory = np.empty((size, 2))
         self.curr_size = 0
         self.idx = 0
 
     def sample(self, batch_size=128):
         batch_idx = random.sample(range(self.curr_size), k=batch_size)
-        return self.memory[batch_idx]
+        return torch.from_numpy(self.state_memory[batch_idx, 0]).to(device).to(torch.float), torch.from_numpy(self.state_memory[batch_idx, 1]).to(device).to(torch.float), torch.from_numpy(self.action_reward_memory[batch_idx, 0]).to(device).to(torch.int), torch.from_numpy(self.action_reward_memory[batch_idx, 1]).to(device).to(torch.float)
 
     def push(self, state, new_state, action, reward):
-        self.memory[self.idx] = (state, new_state, action, reward)
-        self.idx = (self.idx + 1) % self.size
-        if self.curr_size < len(self.memory):
+        self.state_memory[self.idx, 0] = state.cpu()
+        self.state_memory[self.idx, 1] = new_state.cpu()
+        self.action_reward_memory[self.idx] = np.array([action, reward], dtype=float)
+        self.idx = (self.idx + 1) % len(self)
+        if self.curr_size < len(self):
             self.curr_size += 1
 
-    def __length__(self):  # Maximum Capacity
-        return len(self.memory)
+    def __len__(self):  # Maximum Capacity
+        return len(self.state_memory)

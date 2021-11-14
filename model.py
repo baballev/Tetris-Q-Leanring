@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class TetrisNetwork(nn.Module):
 
@@ -11,6 +12,7 @@ class TetrisNetwork(nn.Module):
         self.fc2 = nn.Linear(hidden_size, output_dim)
 
     def forward(self, state):
-        temp = F.relu(self.fc1(state))
-        action_values = F.tanh(self.fc2(temp))
+        temp = state.view(state.size(0), -1)
+        temp = F.relu(self.fc1(temp))
+        action_values = torch.tanh(self.fc2(temp))
         return action_values
