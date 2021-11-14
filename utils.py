@@ -208,3 +208,21 @@ class ReplayMemory:  # ToDo: implement save functions with pickle library
 
     def __len__(self):  # Maximum Capacity
         return len(self.state_memory)
+
+
+def relaunch_routine():
+    pressAndHold('ctrl')
+    time.sleep(0.3)
+    press('p')
+    time.sleep(0.3)
+    release('ctrl')
+    time.sleep(1)
+    press('F1')
+    time.sleep(1)
+    press('enter')
+    time.sleep(2)
+    pressAndHold('ctrl')
+    time.sleep(0.3)
+    press('p')
+    time.sleep(0.3)
+    release('ctrl')

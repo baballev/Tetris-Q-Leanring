@@ -10,7 +10,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def tetris_train(episode_nb=5000, min_steps_training=50000, target_update_frequency=30000, batch_size=128, gamma=0.999,
                  lr=0.0001, eps=0.99, schedule=100000,
-                 memory_capacity=500000):  # min_steps_training is considered to be smaller than the memory capacity
+                 memory_capacity=1000000):  # min_steps_training is considered to be smaller than the memory capacity
     env = environment.TetrisGBAEnvironment()
     tt = trainer.TetrisTrainer(batch_size=batch_size, gamma=gamma, lr=lr, epsilon_start=eps, schedule_size=schedule,
                                capacity=memory_capacity)

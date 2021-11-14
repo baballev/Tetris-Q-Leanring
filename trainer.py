@@ -9,7 +9,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class TetrisTrainer():
 
-    def __init__(self, capacity=500000, batch_size=128, gamma=0.999, lr=0.0001, epsilon_start=0.99, schedule_size=1000000):
+    def __init__(self, capacity=1000000, batch_size=128, gamma=0.999, lr=0.0001, epsilon_start=0.99, schedule_size=1000000):
         self.batch_size = batch_size
         self.gamma = gamma
         self.learning_rate = lr

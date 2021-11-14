@@ -5,6 +5,7 @@ import torchvision
 import torch
 import torch.nn.functional as F
 import utils
+import time
 
 GBA_REGION = (1, 51, 241, 211)
 GRID_REGION = (81, 51, 161, 211)
@@ -19,6 +20,7 @@ class TetrisGBAEnvironment(gym.Env):
         self.screen.capture(target_fps=60, region=GRID_REGION)
 
     def reset(self):  # ToDo: unpause the game, load F1 save, press enter and pause the game again.
+        utils.relaunch_routine()
         return torch.zeros((1, 20, 10), dtype=torch.float).to(device)
 
     def step(self, action, state):
@@ -26,7 +28,6 @@ class TetrisGBAEnvironment(gym.Env):
         self.perform_action(action)
         # wait a bit
         new_state = self.get_observation()
-        print(new_state)
         reward = self.get_reward(state, new_state)
         return new_state, reward, done
 
@@ -44,8 +45,10 @@ class TetrisGBAEnvironment(gym.Env):
             return (blocks-new_blocks)/50
         elif blocks == new_blocks:
             return torch.tensor(-0.001, dtype=torch.float)
-        elif blocks > new_blocks:
-            return (new_blocks - blocks)/100
+        elif new_blocks > blocks:
+            return -(new_blocks - blocks)/100
+        elif -8 < new_blocks - blocks < 0:  # Handling noise and compensate for the reward loss
+            return -(new_blocks-blocks)/100 - torch.tensor(0.001, dtype=torch.float)
 
     '''
     @staticmethod
@@ -95,6 +98,7 @@ class TetrisGBAEnvironment(gym.Env):
             utils.release('ctrl')
 
     def stop(self):
+        utils.release('ctrl')
         self.screen.stop()
         # ToDo: Close the VBA environment + save states
 
