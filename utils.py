@@ -7,6 +7,8 @@ import numpy as np
 import torch
 import psutil
 import subprocess
+import pyautogui
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -165,7 +167,7 @@ def press(*args):
     '''
     for i in args:
         win32api.keybd_event(VK_CODE[i], 0,0,0)
-        time.sleep(.005)
+        time.sleep(.001)
         win32api.keybd_event(VK_CODE[i],0 ,win32con.KEYEVENTF_KEYUP ,0)
 
 
@@ -219,11 +221,15 @@ def relaunch_routine():
     press('p')
     time.sleep(0.1)
     release('ctrl')
+    time.sleep(0.5)
+    pyautogui.click(200, 150)
     time.sleep(0.2)
     press('F1')
     time.sleep(1)
-    press('enter')
-    time.sleep(2.5)
+    pressAndHold('enter')
+    time.sleep(0.1)
+    release('enter')
+    time.sleep(2)
     pressAndHold('ctrl')
     time.sleep(0.1)
     press('p')
@@ -250,29 +256,30 @@ def launch_environment_routine():
         release('ctrl')
         time.sleep(0.1)
         press('t')
+        time.sleep(0.01)
         press('down_arrow')
+        time.sleep(0.01)
         press('enter')
         time.sleep(0.1)
         pressAndHold('ctrl')
-        time.sleep(0.2)
         press('1')
-        time.sleep(0.1)
         press('2')
-        time.sleep(0.1)
         press('3')
-        time.sleep(0.2)
+        time.sleep(0.1)
         release('ctrl')
         time.sleep(0.1)
+        pyautogui.click(200, 150)
+        time.sleep(0.1)
         press('F1')
-        time.sleep(1)
-        press('enter')
         time.sleep(2)
+        press('enter')
+        time.sleep(3)
         pressAndHold('ctrl')
         time.sleep(0.1)
         press('p')
         time.sleep(0.1)
         release('ctrl')
-        time.sleep(0.1)
+        time.sleep(0.3)
         return p
 
 

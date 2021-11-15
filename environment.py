@@ -22,25 +22,26 @@ class TetrisGBAEnvironment(gym.Env):
 
     def reset(self):  # ToDo: unpause the game, load F1 save, press enter and pause the game again.
         utils.relaunch_routine()
-        return self.get_observation()[0]
+        return self.get_observation(0)[0]
 
-    def step(self, action, state):
+    def step(self, action, state, step):
         self.perform_action(action)
         # wait a bit
-        new_state, done = self.get_observation()
+        new_state, done = self.get_observation(step)
         if not done:
             reward = self.get_reward(state, new_state)
         if done:
             reward = torch.tensor(-1.0, dtype=torch.float).to(device)
-        return new_state, reward, done
+        return new_state, torch.clip_(reward, -1.0, 1.0), done
 
-    def get_observation(self):
+    def get_observation(self, step):
         if not self.simulation:
-            done = False
             grid_pixels = self.screen.get_latest_frame().permute(2, 0, 1)
-            if grid_pixels[0, 50, -1] < 0.5:
-                done = True
-            grid_pixels = torch.ceil_(F.threshold(grid_pixels[:, :, :-1].mean(keepdim=True, dim=0), 0.3, 0.0))
+            if step > 10:
+                done = grid_pixels[0, 50, -1] < 0.5
+            else:
+                done = False
+            grid_pixels = torch.ceil_(F.threshold(grid_pixels.mean(keepdim=True, dim=0), 0.3, 0.0))
             grid = torch.ceil_(F.threshold(F.avg_pool2d(grid_pixels, (8, 8)), 0.6, 0.0))
             return grid, done
         else:

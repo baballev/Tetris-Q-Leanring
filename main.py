@@ -7,7 +7,7 @@ MAX_STEPS = 500000
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def tetris_train(episode_nb=5000, min_steps_training=50000, target_update_frequency=30000, batch_size=128, gamma=0.999,
-                 lr=0.0001, eps=0.99, schedule=500000, load=None,
+                lr=0.0001, eps=0.99, schedule=500000, load=None,
                  memory_capacity=1000000):  # min_steps_training is considered to be smaller than the memory capacity
     env = environment.TetrisGBAEnvironment()
     if load is not None:
@@ -23,7 +23,7 @@ def tetris_train(episode_nb=5000, min_steps_training=50000, target_update_freque
 
         for step in range(MAX_STEPS):
             action = tt.select_action(state)
-            new_state, reward, done = env.step(action, state)
+            new_state, reward, done = env.step(action, state, step)
             tt.log(reward, done, step, episode)
             tt.memory.push(state, new_state, action, reward)
             if tt.memory.curr_size > min_steps_training:
@@ -39,7 +39,13 @@ def tetris_train(episode_nb=5000, min_steps_training=50000, target_update_freque
                 break
 
             # ToDo: Regular evaluation
+        if episode % 10 == 0:
+            print("Total number of steps: " + str(total_steps))
 
 
 if __name__ == "__main__":
-    tetris_train()
+    #tetris_train()
+    tt = trainer.load("E:/Programmation/Python/tetrist_rl/checkpoints/2021-11-15 15-45-03.573059.pckl")
+    
+
+
