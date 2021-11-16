@@ -169,6 +169,7 @@ def press(*args):
         win32api.keybd_event(VK_CODE[i], 0,0,0)
         time.sleep(.001)
         win32api.keybd_event(VK_CODE[i],0 ,win32con.KEYEVENTF_KEYUP ,0)
+        time.sleep(.001)
 
 
 def pressAndHold(*args):
@@ -222,10 +223,8 @@ def relaunch_routine():
     time.sleep(0.1)
     release('ctrl')
     time.sleep(0.5)
-    pyautogui.click(200, 150)
-    time.sleep(0.2)
     press('F1')
-    time.sleep(1)
+    time.sleep(0.5)
     pressAndHold('enter')
     time.sleep(0.1)
     release('enter')
@@ -271,7 +270,7 @@ def launch_environment_routine():
         pyautogui.click(200, 150)
         time.sleep(0.1)
         press('F1')
-        time.sleep(2)
+        time.sleep(1)
         press('enter')
         time.sleep(3)
         pressAndHold('ctrl')
@@ -282,7 +281,7 @@ def launch_environment_routine():
         time.sleep(0.3)
         return p
 
-
     except Exception as e:
         print(e)
         p = None
+        return p

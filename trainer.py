@@ -26,7 +26,7 @@ class TetrisTrainer():
         self.optimizer = optim.Adam(self.q_network.parameters(), lr=self.learning_rate, eps=1e-5)
 
         self.curr_reward = 0.0
-        self.episode_rewards = []
+        self.episode_rewards, self.episode_length = [], []
 
     def optimize(self):
         state, new_state, action, reward = self.memory.sample(batch_size=self.batch_size)
@@ -40,14 +40,19 @@ class TetrisTrainer():
         loss.backward()
         self.optimizer.step()
 
-    def select_action(self, state):
-        rand = random.random()  # real number between 0 and 1 uniformly distributed
-        if rand > self.epsilon:
-            action = torch.argmax(self.q_network(state))
-        else:
-            action = random.randint(0, 4)
-        self.epsilon -= 1 / self.schedule_size  # ToDo: fix ugly code
-        self.epsilon = max(0.02, self.epsilon)
+    def select_action(self, state, evaluation):
+        with torch.no_grad():
+            if evaluation:
+                y = self.q_network(state)
+                action = torch.argmax(y)
+            else:
+                rand = random.random()  # real number between 0 and 1 uniformly distributed
+                if rand > self.epsilon:
+                    action = torch.argmax(self.q_network(state))
+                else:
+                    action = random.randint(0, 4)
+                self.epsilon -= 1 / self.schedule_size  # ToDo: fix ugly code
+                self.epsilon = max(0.05, self.epsilon)
         return action
 
     def update_target(self):
@@ -55,9 +60,9 @@ class TetrisTrainer():
 
     def log(self, reward, done, step, episode):
         self.curr_reward += reward
-
         if done:
             self.episode_rewards.append(self.curr_reward)
+            self.episode_length.append(step)
             print("End of episode " + str(episode) + " - " + str(step) + " steps - Episode Reward: " + str(self.curr_reward))
             self.curr_reward = 0.0
 
@@ -69,6 +74,7 @@ class TetrisTrainer():
 
 def load(path):
     with open(path, 'rb') as f:
-        return pickle.load(f)
-
+        tmp = pickle.load(f)
+        tmp.curr_reward = 0.0
+        return tmp
     # - Stop function at the end of training

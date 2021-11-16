@@ -19,91 +19,84 @@ class TetrisGBAEnvironment(gym.Env):
         self.screen.capture(target_fps=60, region=GRID_REGION)
         if not self.simulation:
             self.process = utils.launch_environment_routine()
+        else:  # Blocks fall 2/1 block en alternance
+            self.game_grid = torch.zeros((1, 21, 10)).to(device)
+            self.alternance = True
+            self.done = False
 
     def reset(self):  # ToDo: unpause the game, load F1 save, press enter and pause the game again.
-        utils.relaunch_routine()
+        if self.simulation:
+            self.game_grid = torch.zeros((1, 21, 10)).to(device)
+        else:
+            utils.relaunch_routine()
         return self.get_observation(0)[0]
 
     def step(self, action, state, step):
         self.perform_action(action)
-        # wait a bit
+        # wait for a bit
         new_state, done = self.get_observation(step)
         if not done:
             reward = self.get_reward(state, new_state)
-        if done:
+        else:
             reward = torch.tensor(-1.0, dtype=torch.float).to(device)
         return new_state, torch.clip_(reward, -1.0, 1.0), done
 
     def get_observation(self, step):
         if not self.simulation:
             grid_pixels = self.screen.get_latest_frame().permute(2, 0, 1)
-            if step > 10:
-                done = grid_pixels[0, 50, -1] < 0.5
-            else:
-                done = False
+            done = grid_pixels[0, 50, -1] < 0.56
             grid_pixels = torch.ceil_(F.threshold(grid_pixels.mean(keepdim=True, dim=0), 0.3, 0.0))
             grid = torch.ceil_(F.threshold(F.avg_pool2d(grid_pixels, (8, 8)), 0.6, 0.0))
             return grid, done
         else:
-            pass
-
+            return self.game_grid, self.done
     @staticmethod
     def get_reward(state, new_state):
         blocks, new_blocks = state.sum(), new_state.sum()
         if new_blocks - blocks < -8:
-            return (blocks-new_blocks)/50
-        elif blocks == new_blocks:
-            return torch.tensor(-0.001, dtype=torch.float).to(device)
-        elif new_blocks > blocks:
-            return -(new_blocks - blocks)/100
-        elif -8 < new_blocks - blocks < 0:  # Handling noise and compensate for the reward loss
-            return -(new_blocks-blocks)/100 - torch.tensor(0.001, dtype=torch.float)
+            return (blocks-new_blocks)/40
         else:
             return torch.tensor(0.0, dtype=torch.float).to(device)
-
-
 
     def perform_action(self, action):
         if not self.simulation:
             if action == 0:  # DO NOTHING
-                utils.pressAndHold('ctrl')
                 for _ in range(12):
                     utils.press('n')
-                    utils.release('ctrl')
 
             elif action == 1:  # ROTATE BLOCK
-                utils.pressAndHold('x', 'ctrl')
+                utils.pressAndHold('x')
                 for i in range(12):
-                    if i == 1:
+                    if i >= 2:
                         utils.release('x')
                     utils.press('n')
-                utils.release('ctrl')
 
             elif action == 2:  # LEFT
-                utils.pressAndHold('h', 'ctrl')
+                utils.pressAndHold('h')
                 for i in range(12):
-                    if i == 1:
+                    if i >= 2:
                         utils.release('h')
                     utils.press('n')
-                utils.release('ctrl')
 
             elif action == 3:  # RIGHT
-                utils.pressAndHold('j', 'ctrl')
+                utils.pressAndHold('j')
                 for i in range(12):
-                    if i == 1:
+                    if i >= 2:
                         utils.release('j')
                     utils.press('n')
-                utils.release('ctrl')
 
             else:  # DOWN
-                utils.pressAndHold('g', 'ctrl')
+                utils.pressAndHold('g')
                 for i in range(12):
-                    if i == 1:
+                    if i >= 2:
                         utils.release('g')
                     utils.press('n')
-                utils.release('ctrl')
         else:
-            pass
+            if action == 0:
+                if self.alternance: # One block down
+                    pass
+                else: # Two blocks down
+                    pass
 
 
     def stop(self):
