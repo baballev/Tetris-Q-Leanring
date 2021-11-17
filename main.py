@@ -58,10 +58,27 @@ def tetris_train(episode_nb=5000, min_steps_training=50000, target_update_freque
 
 
 if __name__ == "__main__":
-    tetris_train(min_steps_training=150)
+    tetris_train()
 
     '''
-    tt = trainer.load("E:/Programmation/Python/tetrist_rl/checkpoints/2021-11-16 13-26-57.580763.pckl")
+    tt = trainer.load("E:/Programmation/Python/tetrist_rl/checkpoints/2021-11-17 14-06-57.918826.pckl")
+    print(tt.epsilon)
+    tmp = torch.zeros((1, 20, 10), dtype=torch.float)
+    tmp[0, -2, : ] = torch.ones(10)
+    tmp[0, -1, : ] = torch.ones(10)
+    tmp[0, :, 5] = torch.ones(20)
+    tmp[0, :, 6] = torch.ones(20)
+
+    tmp[0, -2, 0] = 0.0
+    tmp[0, -1, 0] = 0.0
+
+    tmp[0, -2, 1] = 0.0
+    tmp[0, -1, 1] = 0.0
+
+    print(tmp)
+    tmp = tmp.to(device)
+
+    print(tt.q_network(tmp))
     stat = tt.episode_rewards
     fig = plt.figure()
     ax = plt.subplot(111)
@@ -73,4 +90,3 @@ if __name__ == "__main__":
     ax.plot(x[:-9], y2)
     plt.show()
     '''
-

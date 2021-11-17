@@ -98,7 +98,6 @@ class TetrisGBAEnvironment(gym.Env):
                 else: # Two blocks down
                     pass
 
-
     def stop(self):
         utils.release('ctrl')
         self.screen.stop()

@@ -169,7 +169,6 @@ def press(*args):
         win32api.keybd_event(VK_CODE[i], 0,0,0)
         time.sleep(.001)
         win32api.keybd_event(VK_CODE[i],0 ,win32con.KEYEVENTF_KEYUP ,0)
-        time.sleep(.001)
 
 
 def pressAndHold(*args):

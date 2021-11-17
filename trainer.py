@@ -51,7 +51,7 @@ class TetrisTrainer():
                     action = torch.argmax(self.q_network(state))
                 else:
                     action = random.randint(0, 4)
-                self.epsilon -= 1 / self.schedule_size  # ToDo: fix ugly code
+                self.epsilon -= 1 / self.schedule_size
                 self.epsilon = max(0.05, self.epsilon)
         return action
 

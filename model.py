@@ -15,5 +15,5 @@ class TetrisNetwork(nn.Module):
     def forward(self, state):
         temp = state.view(state.size(0), -1)
         temp = F.relu(self.fc1(temp))
-        action_values = torch.tanh(self.fc2(temp))
+        action_values = self.fc2(temp)
         return action_values
