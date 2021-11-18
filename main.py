@@ -23,7 +23,7 @@ def tetris_train(episode_nb=5000, min_steps_training=50000, target_update_freque
         total_steps = previous_t
     else:
         tt = trainer.TetrisTrainer(batch_size=batch_size, gamma=gamma, lr=lr, epsilon_start=eps, schedule_size=schedule,
-                               capacity=memory_capacity)
+                               capacity=memory_capacity, min_steps_training=min_steps_training)
         total_steps = 0
 
     if load_special_memory is not None:
@@ -38,7 +38,9 @@ def tetris_train(episode_nb=5000, min_steps_training=50000, target_update_freque
     for episode in range(episode_nb):
         state = env.reset()
         for step in range(MAX_STEPS):
-            action = tt.select_action(state, evaluation)
+            #action = tt.select_action(state, evaluation, total_steps)
+            print(state)
+            action = input()
             new_state, reward, done = env.step(action, state, step)
             tt.log(reward, done, step, episode)
             if not evaluation:
@@ -64,27 +66,34 @@ def tetris_train(episode_nb=5000, min_steps_training=50000, target_update_freque
 
 
 if __name__ == "__main__":
-    tetris_train(simulation=True)
+    tetris_train(simulation=True, min_steps_training=100000, episode_nb=500000, target_update_frequency=50000, schedule=1e6)
 
+    #tt = trainer.load("E:/Programmation/Python/tetrist_rl/checkpoints/2021-11-18 10-22-06.499653.pckl")
+    #print(tt.epsilon)
     '''
-    tt = trainer.load("E:/Programmation/Python/tetrist_rl/checkpoints/2021-11-17 14-06-57.918826.pckl")
-    print(tt.epsilon)
     tmp = torch.zeros((1, 20, 10), dtype=torch.float)
-    tmp[0, -2, : ] = torch.ones(10)
-    tmp[0, -1, : ] = torch.ones(10)
-    tmp[0, :, 5] = torch.ones(20)
+    #tmp[0, -2, : ] = torch.ones(10)
+    #tmp[0, -1, : ] = torch.ones(10)
+    #tmp[0, :, 5] = torch.ones(20)
     tmp[0, :, 6] = torch.ones(20)
+    #tmp[0, 0, 6] = 0.0
+    tmp[0, 1, 6] = 0.0
+    tmp[0, 2, 6] = 0.0
+    tmp[0, 0, 5] = 1.0
+    tmp[0, 0, 4] = 1.0
+    tmp[0, 0, 3] = 1.0
 
-    tmp[0, -2, 0] = 0.0
-    tmp[0, -1, 0] = 0.0
+    #tmp[0, -2, 0] = 0.0
+    #tmp[0, -1, 0] = 0.0
 
-    tmp[0, -2, 1] = 0.0
-    tmp[0, -1, 1] = 0.0
+    #tmp[0, -2, 1] = 0.0
+    #tmp[0, -1, 1] = 0.0
 
     print(tmp)
     tmp = tmp.to(device)
-
     print(tt.q_network(tmp))
+    '''
+    '''
     stat = tt.episode_rewards
     fig = plt.figure()
     ax = plt.subplot(111)

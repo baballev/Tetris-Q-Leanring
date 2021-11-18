@@ -11,12 +11,13 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class TetrisTrainer():
 
-    def __init__(self, capacity=1000000, batch_size=128, gamma=0.999, lr=0.0001, epsilon_start=0.99, schedule_size=1000000):
+    def __init__(self, capacity=1000000, batch_size=128, gamma=0.999, lr=0.0001, epsilon_start=0.99, schedule_size=1000000, min_steps_training=100000):
         self.batch_size = batch_size
         self.gamma = gamma
         self.learning_rate = lr
         self.epsilon = epsilon_start
         self.schedule_size = schedule_size
+        self.min_steps_training = min_steps_training
 
         self.q_network = model.TetrisNetwork(input_dim=200, hidden_size=32, output_dim=5).to(device)  # The one we choose the actions from
         self.target_q_network = model.TetrisNetwork(input_dim=200, hidden_size=32, output_dim=5).to(device)  # The one we will be optimizing from (in part)
@@ -40,7 +41,7 @@ class TetrisTrainer():
         loss.backward()
         self.optimizer.step()
 
-    def select_action(self, state, evaluation):
+    def select_action(self, state, evaluation, step):
         with torch.no_grad():
             if evaluation:
                 y = self.q_network(state)
@@ -51,8 +52,9 @@ class TetrisTrainer():
                     action = torch.argmax(self.q_network(state))
                 else:
                     action = random.randint(0, 4)
-                self.epsilon -= 1 / self.schedule_size
-                self.epsilon = max(0.05, self.epsilon)
+                if step > self.min_steps_training:
+                    self.epsilon -= 1 / self.schedule_size
+                    self.epsilon = max(0.05, self.epsilon)
         return action
 
     def update_target(self):

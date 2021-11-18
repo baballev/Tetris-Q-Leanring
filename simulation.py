@@ -172,13 +172,13 @@ class Simulation:
 
         if self.game.state == "start":
             if self.pressing_down:
-                for _ in range(4):
+                for _ in range(3):
                     self.game.go_down()
             elif self.alternate:
                 self.game.go_down()
             else:
                 self.game.go_down()
-                self.game.go_down()
+                #self.game.go_down()  TODO: restore this
             self.alternate = not self.alternate
         self.pressing_down = False
 
@@ -186,7 +186,8 @@ class Simulation:
         self.done = self.game.state == "gameover"
         if self.done:
             reward = torch.tensor(-1.0, dtype=torch.float).to(device)
-        else:
-            reward = torch.tensor((self.game.score - self.previous_score)/16, dtype=torch.float).to(device)
+        else:  # ToDo: CONSIDER REMOVING +0.0001
+            reward = torch.tensor((self.game.score - self.previous_score)/16 + 0.0001, dtype=torch.float).to(device)
+        print(observation)
 
         return observation, self.done, reward
