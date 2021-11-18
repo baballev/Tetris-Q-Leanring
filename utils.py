@@ -169,7 +169,7 @@ def press(*args):
         win32api.keybd_event(VK_CODE[i], 0,0,0)
         time.sleep(.001)
         win32api.keybd_event(VK_CODE[i],0 ,win32con.KEYEVENTF_KEYUP ,0)
-
+        #time.sleep(.001)
 
 def pressAndHold(*args):
     '''
@@ -204,7 +204,7 @@ class ReplayMemory:  # ToDo: implement save functions with pickle library
         return torch.from_numpy(self.state_memory[batch_idx, 0]).to(device).to(torch.float), torch.from_numpy(self.state_memory[batch_idx, 1]).to(device).to(torch.float), torch.from_numpy(self.action_reward_memory[batch_idx, 0]).to(device).to(torch.int), torch.from_numpy(self.action_reward_memory[batch_idx, 1]).to(device).to(torch.float)
 
     def push(self, state, new_state, action, reward):
-        self.state_memory[self.idx, 0] = state.cpu()
+        self.state_memory[self.idx, 0] = state.cpu() #ToDO check if opti
         self.state_memory[self.idx, 1] = new_state.cpu()
         self.action_reward_memory[self.idx] = np.array([action, reward], dtype=float)
         self.idx = (self.idx + 1) % len(self)
