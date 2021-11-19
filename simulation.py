@@ -188,6 +188,5 @@ class Simulation:
             reward = torch.tensor(-1.0, dtype=torch.float).to(device)
         else:  # ToDo: CONSIDER REMOVING +0.0001
             reward = torch.tensor((self.game.score - self.previous_score)/16 + 0.0001, dtype=torch.float).to(device)
-        print(observation)
 
         return observation, self.done, reward

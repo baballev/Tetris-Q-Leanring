@@ -19,8 +19,8 @@ class TetrisTrainer():
         self.schedule_size = schedule_size
         self.min_steps_training = min_steps_training
 
-        self.q_network = model.TetrisNetwork(input_dim=200, hidden_size=32, output_dim=5).to(device)  # The one we choose the actions from
-        self.target_q_network = model.TetrisNetwork(input_dim=200, hidden_size=32, output_dim=5).to(device)  # The one we will be optimizing from (in part)
+        self.q_network = model.TetrisNetwork(input_dim=200, hidden_size1=64, hidden_size2=16, output_dim=5).to(device)  # The one we choose the actions from
+        self.target_q_network = model.TetrisNetwork(input_dim=200, hidden_size1=64, hidden_size2=16, output_dim=5).to(device)  # The one we will be optimizing from (in part)
         self.update_target()
 
         self.memory = utils.ReplayMemory(capacity)
@@ -54,7 +54,7 @@ class TetrisTrainer():
                     action = random.randint(0, 4)
                 if step > self.min_steps_training:
                     self.epsilon -= 1 / self.schedule_size
-                    self.epsilon = max(0.05, self.epsilon)
+                    self.epsilon = max(0.10, self.epsilon)
         return action
 
     def update_target(self):
