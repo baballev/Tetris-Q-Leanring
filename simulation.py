@@ -1,4 +1,6 @@
 import random
+import time
+import pygame
 import torch
 import torch.nn.functional as F
 
@@ -9,6 +11,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ## IT HAS BEEN MODIFIED TO MATCH THE GBA VERSION: TETRIS WORLD I'M USING AS A REAL ENVIRONMENT. THIS IS SO THE SIMULATED ENVIRONMENT IS AS CLOSE AS POSSIBLE TO THE REAL GBA GAME.
 
 
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+GRAY = (128, 128, 128)
 colors = [
     (0, 0, 0),
     (120, 37, 179),
@@ -58,7 +63,7 @@ class Tetris:
     zoom = 20
     figure = None
 
-    def __init__(self, height, width):
+    def __init__(self, height, width, render=False):
         self.height = height
         self.width = width
         self.field = []
@@ -69,6 +74,7 @@ class Tetris:
             for j in range(width):
                 new_line.append(0)
             self.field.append(new_line)
+
 
     def new_figure(self):
         self.figure = Figure(3, 0)
@@ -129,7 +135,7 @@ class Tetris:
 
 
 class Simulation:
-    def __init__(self):
+    def __init__(self, render=False):
         self.done = False
 
         self.game = Tetris(20, 10)
@@ -139,6 +145,15 @@ class Simulation:
         self.alternate = True
         self.game.__init__(20, 10)
         self.previous_score = 0.0
+
+        self.display = render
+
+        if self.display:
+            pygame.init()
+            size = (400, 500)
+            self.screen = pygame.display.set_mode(size)
+            pygame.display.set_caption("Tetris")
+
 
     def reset(self):
         self.done = False
@@ -154,6 +169,42 @@ class Simulation:
                     if p in self.game.figure.image():
                         observation[0, i + self.game.figure.y, j + self.game.figure.x] = 1.0
         return observation.to(device)
+
+    def render(self):
+        self.screen.fill(WHITE)
+        for i in range(self.game.height):
+            for j in range(self.game.width):
+                pygame.draw.rect(self.screen, GRAY, [self.game.x + self.game.zoom * j, self.game.y + self.game.zoom * i, self.game.zoom, self.game.zoom],
+                                 1)
+                if self.game.field[i][j] > 0:
+                    pygame.draw.rect(self.screen, colors[self.game.field[i][j]],
+                                     [self.game.x + self.game.zoom * j + 1, self.game.y + self.game.zoom * i + 1, self.game.zoom - 2,
+                                      self.game.zoom - 1])
+
+        if self.game.figure is not None:
+            for i in range(4):
+                for j in range(4):
+                    p = i * 4 + j
+                    if p in self.game.figure.image():
+                        pygame.draw.rect(self.screen, colors[self.game.figure.color],
+                                         [self.game.x + self.game.zoom * (j + self.game.figure.x) + 1,
+                                          self.game.y + self.game.zoom * (i + self.game.figure.y) + 1,
+                                          self.game.zoom - 2, self.game.zoom - 2])
+
+        font = pygame.font.SysFont('Calibri', 25, True, False)
+        font1 = pygame.font.SysFont('Calibri', 65, True, False)
+        text = font.render("Score: " + str(self.game.score), True, BLACK)
+        text_game_over = font1.render("Game Over", True, (255, 125, 0))
+        text_game_over1 = font1.render("Press ESC", True, (255, 215, 0))
+
+        self.screen.blit(text, [0, 0])
+        if self.game.state == "gameover":
+            self.screen.blit(text_game_over, [20, 200])
+            self.screen.blit(text_game_over1, [25, 265])
+
+        pygame.display.flip()
+        pygame.display.update()
+        time.sleep(0.005)
 
     def run_step(self, action):
         self.previous_score = self.game.score
@@ -187,6 +238,8 @@ class Simulation:
         if self.done:
             reward = torch.tensor(-1.0, dtype=torch.float).to(device)
         else:  # ToDo: CONSIDER REMOVING +0.0001
-            reward = torch.tensor((self.game.score - self.previous_score)/16 + 0.0001, dtype=torch.float).to(device)
+            reward = torch.tensor((self.game.score - self.previous_score)/2 + 0.0001, dtype=torch.float).to(device)
+        if self.display:
+            self.render()
 
         return observation, self.done, reward

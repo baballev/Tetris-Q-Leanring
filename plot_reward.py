@@ -2,7 +2,7 @@ import trainer
 import matplotlib.pyplot as plt
 import numpy as np
 
-tt = trainer.load("E:/Programmation/Python/tetrist_rl/checkpoints/2021-11-19 17-56-48.202751.pckl")
+tt = trainer.load("E:/Programmation/Python/tetrist_rl/checkpoints/2021-11-22 08-42-52.597609.pckl")
 print(tt.epsilon)
 stat = tt.episode_rewards
 fig = plt.figure()

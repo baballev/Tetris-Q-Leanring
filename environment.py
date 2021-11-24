@@ -14,15 +14,16 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class TetrisGBAEnvironment(gym.Env):
-    def __init__(self, simul=False):
+    def __init__(self, simul=False, render=False):
         super(TetrisGBAEnvironment, self).__init__()
-        self.screen = d3dshot.create(capture_output="pytorch_float_gpu")  # ToDo: Try other devices for the preprocessing
-        self.screen.capture(target_fps=60, region=GRID_REGION)
         if not simul:
+            self.screen = d3dshot.create(
+                capture_output="pytorch_float_gpu")  # ToDo: Try other devices for the preprocessing
+            self.screen.capture(target_fps=60, region=GRID_REGION)
             self.process = utils.launch_environment_routine()
             self.simulation = None
         else:
-            self.simulation = simulation.Simulation()
+            self.simulation = simulation.Simulation(render=render)
 
     def reset(self):  # ToDo: unpause the game, load F1 save, press enter and pause the game again.
         if self.simulation:
@@ -42,7 +43,7 @@ class TetrisGBAEnvironment(gym.Env):
             else:
                 reward = torch.tensor(-1.0, dtype=torch.float).to(device)
 
-        return new_state, torch.clip_(reward, -1.0, 1.0), done
+        return new_state, reward, done
 
     def get_observation(self, step):
         grid_pixels = self.screen.get_latest_frame().permute(2, 0, 1)
