@@ -382,6 +382,8 @@ class PrioritizedMemory:
         state = torch.tensor(transitions['state'], dtype=torch.float32, device=self.device).div_(255)  # Agent will turn into batch
         self.current_idx += 1
         return state
+
+
 def relaunch_routine():
     pressAndHold('ctrl')
     time.sleep(0.1)

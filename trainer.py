@@ -22,6 +22,7 @@ class TetrisTrainer():
         self.q_network = model.TetrisNetwork(input_dim=200, hidden_size1=64, hidden_size2=16, output_dim=5).to(device)  # The one we choose the actions from
         self.target_q_network = model.TetrisNetwork(input_dim=200, hidden_size1=64, hidden_size2=16, output_dim=5).to(device)  # The one we will be optimizing from (in part)
         self.update_target()
+        print(self.q_network)
 
         self.memory = utils.PrioritizedMemory(capacity)
         self.optimizer = optim.RMSprop(self.q_network.parameters(), lr=self.learning_rate)

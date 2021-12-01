@@ -14,9 +14,9 @@ MAX_STEPS = 500000
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def tetris_train(episode_nb=50000, min_steps_training=200, batch_size=250, gamma=0.9,
+def tetris_train(episode_nb=50000, min_steps_training=50000, batch_size=250, gamma=0.9,
                 lr=0.001, eps=0.99, schedule=500000, load=None, load_special_memory=None, simulation=False,
-                 memory_capacity=20000, previous_t=0, evaluation=False):  # min_steps_training is considered to be smaller than the memory capacity
+                 memory_capacity=50000, previous_t=0, evaluation=False):  # min_steps_training is considered to be smaller than the memory capacity
     env = environment.TetrisGBAEnvironment(simul=simulation, render=evaluation)
     if load is not None:
         tt = trainer.load(load)
@@ -54,14 +54,12 @@ def tetris_train(episode_nb=50000, min_steps_training=200, batch_size=250, gamma
                 print("Total number of steps: " + str(total_steps))
             if done:
                 break
-
             # ToDo: Regular evaluation
-        if episode > 5 and not evaluation:
+        if total_steps > min_steps_training and not evaluation:
             tt.optimize()
         if episode % 250 == 0 and not evaluation:
             tt.save()
             tt.update_target()
-
 
 
 if __name__ == "__main__":
